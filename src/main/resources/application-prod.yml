@@ -1,0 +1,27 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    locations: classpath:db/migration
+    placeholders:
+      generated_stored: STORED
+
+app:
+  security:
+    enabled: true
+    expose-api-docs: false
+    expose-h2-console: false
+  auth:
+    token-ttl: PT8H
+  bootstrap:
+    enabled: true
+    # Required on first start when creating admin; must be 8-72 characters.
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}

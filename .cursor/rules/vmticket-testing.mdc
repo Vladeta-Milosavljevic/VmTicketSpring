@@ -1,0 +1,31 @@
+---
+description: VmTicketSpring mandatory testing and verification gates
+alwaysApply: true
+---
+
+# Testing (mandatory)
+
+Every behavior change ships with tests that would fail without the change.
+
+## Default mix (project standard)
+
+- **Unit tests (many, fast):** entity/service rules — status transitions, validation edge cases, soft-delete behavior, pure authz/decision logic when touched. Extend patterns in `TicketStatusTransitionsTest` and `TicketServiceTest`.
+- **API / functional tests:** `@SpringBootTest` + MockMvc (or `WebTestClient` / `TestRestTemplate` if already used) — assert HTTP status, JSON, auth, and persistence wiring. This is the preferred check for “does the app behave as expected?” Extend `TicketApiIntegrationTest`.
+- **Slice tests (`@WebMvcTest`, `@DataJpaTest`):** optional, not default. Use only when a clear slice fit exists and nearby tests already use that style. Do not mass-convert the suite to slices unless explicitly asked.
+- **Balance:** not Feature-only and not unit-only — units for rules, `@SpringBootTest` API tests for end-to-end-ish HTTP behavior. Do not invent a parallel test stack.
+- Boot smoke (`VmTicketSpringApplicationTests`) stays for context load only.
+
+## Style and coverage
+
+- Naming: descriptive method names or `@DisplayName` stating the scenario and expected outcome.
+- Cover happy path + important failures: 401/403, 404, 400 validation, illegal status transition, soft-deleted ticket not readable.
+
+## Verification gate
+
+After implementing or changing code, agents **must**:
+
+1. Run the relevant tests (`mvn -q test` or a focused Surefire pattern).
+2. If anything fails, fix the code or tests (do not weaken assertions to “make green”).
+3. Before considering work done, run `mvn verify` when practical and report the result.
+
+Do not commit or declare done with failing tests. Do not skip or disable tests to bypass failures unless explicitly instructed; if blocked, stop and explain.

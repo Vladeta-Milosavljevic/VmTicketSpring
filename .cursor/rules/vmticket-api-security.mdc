@@ -1,0 +1,72 @@
+---
+description: VmTicketSpring API design, migrations, and security rules
+alwaysApply: true
+---
+
+# API and design conventions
+
+- Version public HTTP APIs under `/api/v1/...`
+- Idempotent GETs; mutating operations documented and validated
+- Pagination/sorting for list endpoints; default page size capped
+- OpenAPI annotations kept in sync with actual endpoints
+
+## Ticket soft-delete
+
+- Ticket removal is **soft-delete only** via `deletedAt` (`Ticket.softDelete()`, `TicketService.softDelete`).
+- Do not add hard `DELETE FROM` / `deleteById` removal of ticket rows unless explicitly requested.
+- Reads/lists/get-by-id must ignore soft-deleted tickets (`deletedAt IS NULL` / active queries).
+- API `DELETE /api/v1/tickets/{id}` means soft-delete; subsequent GET returns 404.
+
+## Schema migrations (Flyway only)
+
+- Schema changes **only** via new Flyway versioned migrations in `src/main/resources/db/migration/`.
+- Keep `spring.jpa.hibernate.ddl-auto=validate` (non-mutating); no Hibernate `update`/`create` in committed prod/local config.
+- Do not add Liquibase.
+
+## Security and safety
+
+- Do not weaken auth, authorization, or validation unless explicitly asked.
+- Validate and sanitize inputs at the boundary; trust internal layers less at edges.
+- Principle of least privilege for roles/endpoints.
+- No credentials in source, tests, or logs; use env/config and test fixtures with fakes.
+
+### Auth and roles (baseline)
+
+Roles are exactly: `AGENT`, `MANAGER`, `ADMIN` (`com.vmticket.user.entity.Role`). Do not invent roles, reintroduce `REQUESTER`, widen `@PreAuthorize`, or disable security (`app.security.enabled=false`) unless explicitly asked.
+
+Ticket endpoint matrix (preserve unless explicitly changing auth):
+
+- `GET` tickets — any authenticated
+- `POST` tickets — `AGENT`, `MANAGER`, `ADMIN`
+- `PATCH` tickets — `AGENT`, `MANAGER`, `ADMIN`
+- `DELETE` tickets — `ADMIN` (soft-delete)
+
+Category endpoint matrix (preserve unless explicitly changing auth):
+
+- `GET` categories — any authenticated
+- `POST` categories — `MANAGER`, `ADMIN`
+- `PATCH` categories — `MANAGER`, `ADMIN`
+- no `DELETE`; `isArchived` hides a category from the default list only
+
+Comment and attachment endpoint matrix (preserve unless explicitly changing auth):
+
+- View comments and download files — any authenticated user, and only for a ticket that is not soft-deleted
+- Create comment — the ticket’s assigned agent, the ticket’s assigned manager, or `ADMIN`
+- No comment edit or delete
+- Remove attachment — the uploader, that ticket’s manager, or `ADMIN`
+- Files may be added only when a ticket or a comment is created
+- List and download ticket files — any authenticated user, and only for a ticket that is not soft-deleted
+- Remove a ticket file — the uploader, that ticket’s manager, or `ADMIN`
+
+User endpoint matrix (preserve unless explicitly changing auth):
+
+- `GET` list and get-by-id — `MANAGER` or `ADMIN`
+- `POST` — `MANAGER` or `ADMIN`; a manager may assign only `AGENT`; an admin may assign only `AGENT` or `MANAGER`
+- `PATCH` role — `ADMIN` only, and only `AGENT` ↔ `MANAGER`
+- `DELETE` — `ADMIN` only, soft-delete of an active `AGENT`
+- Deleted users stay referenced by existing work and cannot be newly assigned
+- Tickets and comments must not create users
+
+Non-prod login issues an opaque token for an existing active user. Roles come from `user_roles`. Logout deletes that token. A soft-deleted user's tokens are deleted. Custom config uses `app.security.*` / `app.auth.token-ttl` via `AppSecurityProperties`. Code wins over README if they diverge.
+
+Auth/role behavior changes require tests (unit and/or existing `@SpringBootTest` API patterns). Detailed auth/roles guidance will be expanded in a later rules pass—do not redesign auth in drive-by changes.

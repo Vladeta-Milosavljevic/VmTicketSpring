@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: vmticket-spring
+  profiles:
+    default: local
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+  flyway:
+    enabled: true
+    placeholders:
+      generated_stored: ""
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  security:
+    enabled: true
+    expose-api-docs: true
+    expose-h2-console: false
+  auth:
+    token-ttl: PT8H
+    login-max-failures: 5
+    login-window: PT15M
+  bootstrap:
+    enabled: false
+  storage:
+    location: ./data/uploads
+    max-file-bytes: 10485760

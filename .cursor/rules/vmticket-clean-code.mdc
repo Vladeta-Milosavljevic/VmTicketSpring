@@ -1,0 +1,33 @@
+---
+description: VmTicketSpring clean code, layering, DTOs, errors, comments
+alwaysApply: true
+---
+
+# Clean code and modern standards
+
+Use these layer names:
+
+- `controller` — HTTP only (map DTOs, status codes)
+- `service` — business rules and transactions
+- `repository` — persistence
+- `entity` — JPA model and related enums
+- `dto` — request and response records; do not expose entities in the API
+
+## Patterns
+
+- Prefer records for DTOs; immutable where practical
+- Constructor injection only; no field injection
+- Keep methods small and named for intent; avoid “utils” dumping grounds
+- No dead code, unused imports, commented-out blocks, or speculative abstractions
+- Prefer explicit validation at API boundaries (`@Valid`, Bean Validation)
+- Consistent error handling via `@ControllerAdvice` and a stable error JSON shape
+- Use meaningful HTTP status codes; never return 200 for failures
+- Logging: use SLF4J; appropriate levels; never log secrets or full PII
+- Prefer clarity over cleverness (streams/reflection/AOP only when they clearly help)
+
+## Comments
+
+- Do **not** comment what the code already says (e.g. “// get ticket by id”).
+- **Do** comment non-obvious intent: status rules, security assumptions, invariants, and why not the obvious alternative.
+- Public APIs and complex methods: short Javadoc when behavior is not obvious from the signature.
+- TODOs only with a concrete reason; no vague `TODO: fix later`.

@@ -1,0 +1,28 @@
+---
+description: VmTicketSpring agent workflow and definition of done
+alwaysApply: true
+---
+
+# Workflow for agents
+
+1. Read the approved plan / existing code near the change.
+2. Implement the smallest vertical slice that satisfies the request.
+3. Add or update tests first or alongside the change.
+4. Compile and run tests; fix until green.
+5. Summarize what changed, how it was verified (`mvn test` / `mvn verify`), and any remaining risks or open questions.
+6. Do not refactor unrelated code, reformat whole files, or add docs the user did not ask for.
+7. Do not create git commits or PRs unless the user explicitly asks.
+
+# Definition of done
+
+- Code compiles on Java 25 with the project’s Maven setup
+- New/changed behavior covered by tests
+- `mvn test` (and ideally `mvn verify`) passes
+- No secrets introduced; API contracts and Flyway migrations consistent
+- Comments only where needed for clarity of intent
+- Change scoped to the request; unexplained churn avoided
+
+# When stuck
+
+- Prefer asking one precise question over guessing business rules
+- If a dependency or Boot 4.1.1 / Java 25 incompatibility appears, document it and propose the smallest compatible fix—do not silently downgrade the stack

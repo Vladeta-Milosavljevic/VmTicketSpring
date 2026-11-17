@@ -1,0 +1,22 @@
+---
+description: VmTicketSpring stack and mission constraints (Java 25, Boot 4.1.1)
+alwaysApply: true
+---
+
+# Stack and mission
+
+Build and change a Maven Spring Boot REST API with clean, modern, maintainable code. Prefer small, correct diffs over large rewrites. Do not invent product requirements; if unclear, ask or follow the approved plan.
+
+## Fixed stack (do not drift)
+
+- Java 25 LTS, Maven, Spring Boot 4.1.1
+- Prefer Spring MVC + Spring Data JPA unless the plan says otherwise
+- Use `jakarta.*` (never `javax.*`)
+- Config via `application.yml` / profiles; never hardcode secrets, tokens, or passwords
+- Keep a single-module app unless multi-module is explicitly required
+- Base package `com.vmticket` with areas `ticket`, `user`, `auth`, `security`, `common`, `config` (do not invent alternate root packages)
+- Import direction: `ticket` may import `user` and `security` (`AuthSupport` only); `auth` may import `user` and `security`; `security` may import `user`; `user` must not import `auth` or `security`; `security` must not import `auth`
+- Schema via Flyway only (`src/main/resources/db/migration/`); `ddl-auto=validate`; never Liquibase
+- Custom app config under `app.*` (e.g. `AppSecurityProperties` for `app.security.*` / `app.auth.token-ttl`)
+
+If a Boot 4.1.1 / Java 25 incompatibility appears, document it and propose the smallest compatible fix—do not silently downgrade the stack.

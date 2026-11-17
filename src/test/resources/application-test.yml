@@ -1,0 +1,22 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:vmticket;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
+app:
+  security:
+    enabled: true
+  auth:
+    token-ttl: PT8H
+  storage:
+    location: ${java.io.tmpdir}/vmticket-test-uploads
+    max-file-bytes: 10485760
